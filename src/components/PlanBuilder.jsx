@@ -1,7 +1,24 @@
-import { useState, lazy, Suspense } from 'react'
+import { useState, lazy, Suspense, Component } from 'react'
 import { SPLIT_CONFIGS } from '../utils/splits'
 
 const ExerciseLibrary = lazy(() => import('./ExerciseLibrary'))
+
+class LibraryErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { error: false } }
+  static getDerivedStateFromError() { return { error: true } }
+  render() {
+    if (this.state.error) return (
+      <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 200, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14 }}>
+        <p style={{ color: '#fff', fontSize: 16, fontWeight: 700 }}>טעינה נכשלה</p>
+        <button onClick={() => { this.setState({ error: false }); this.props.onClose() }}
+          style={{ background: '#e8c460', border: 'none', color: '#000', borderRadius: 12, padding: '12px 28px', fontSize: 15, fontWeight: 700, cursor: 'pointer' }}>
+          סגור
+        </button>
+      </div>
+    )
+    return this.props.children
+  }
+}
 const IMG = 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/'
 const SPLIT_KEYS = Object.keys(SPLIT_CONFIGS)
 
@@ -179,16 +196,19 @@ export default function PlanBuilder({ plan, setPlan }) {
       </div>
 
       {adding && (
-        <Suspense fallback={
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e8c460', fontSize: 16 }}>
-            טוען ספרייה...
-          </div>
-        }>
-          <ExerciseLibrary
-            onSelect={ex => addExercise(adding, ex)}
-            onClose={() => setAdding(null)}
-          />
-        </Suspense>
+        <LibraryErrorBoundary onClose={() => setAdding(null)}>
+          <Suspense fallback={
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 200, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+              <div style={{ width: 40, height: 40, border: '3px solid #333', borderTop: '3px solid #e8c460', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+              <p style={{ color: '#e8c460', fontSize: 15, fontWeight: 600 }}>טוען ספרייה...</p>
+            </div>
+          }>
+            <ExerciseLibrary
+              onSelect={ex => addExercise(adding, ex)}
+              onClose={() => setAdding(null)}
+            />
+          </Suspense>
+        </LibraryErrorBoundary>
       )}
     </div>
   )
