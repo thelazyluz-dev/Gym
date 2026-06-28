@@ -12,8 +12,9 @@ const TABS = [
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('plan')
-  const [plan, setPlan]       = useLocalStorage('gym_plan', null)
-  const [history, setHistory] = useLocalStorage('gym_history', [])
+  const [plan, setPlan]         = useLocalStorage('gym_plan', null)
+  const [history, setHistory]   = useLocalStorage('gym_history', [])
+  const [weights, setWeights]   = useLocalStorage('gym_weights', {})
 
   const addToHistory = (session) => setHistory(prev => [session, ...prev])
 
@@ -28,7 +29,7 @@ export default function App() {
 
       <main style={S.main}>
         {activeTab === 'plan'    && <PlanBuilder plan={plan} setPlan={setPlan} />}
-        {activeTab === 'workout' && <ActiveWorkout plan={plan} history={history} addToHistory={addToHistory} />}
+        {activeTab === 'workout' && <ActiveWorkout plan={plan} history={history} weights={weights} setWeights={setWeights} addToHistory={addToHistory} />}
         {activeTab === 'history' && <History history={history} />}
       </main>
 

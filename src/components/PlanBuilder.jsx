@@ -23,10 +23,21 @@ export default function PlanBuilder({ plan, setPlan }) {
     setPlan(prev => ({
       ...prev,
       days: prev.days.map(d =>
-        d.id !== dayId ? d : { ...d, exercises: [...d.exercises, { ...ex, _pid: Date.now() }] }
+        d.id !== dayId ? d : { ...d, exercises: [...d.exercises, { ...ex, _pid: Date.now(), sets: 4 }] }
       ),
     }))
     setAdding(null)
+  }
+
+  const updateSets = (dayId, pid, delta) => {
+    setPlan(prev => ({
+      ...prev,
+      days: prev.days.map(d =>
+        d.id !== dayId ? d : { ...d, exercises: d.exercises.map(e =>
+          e._pid !== pid ? e : { ...e, sets: Math.max(1, (e.sets || 4) + delta) }
+        )}
+      ),
+    }))
   }
 
   const removeExercise = (dayId, pid) => {
@@ -141,6 +152,11 @@ export default function PlanBuilder({ plan, setPlan }) {
                       <div key={ex._pid} style={S.exRow}>
                         <img src={IMG + ex.image} alt={ex.name} style={S.exThumb} loading="lazy" />
                         <span style={S.exName}>{ex.name}</span>
+                        <div style={S.stepper} onClick={e => e.stopPropagation()}>
+                          <button style={S.stepBtn} onClick={() => updateSets(day.id, ex._pid, -1)}>−</button>
+                          <span style={S.stepNum}>{ex.sets || 4}</span>
+                          <button style={S.stepBtn} onClick={() => updateSets(day.id, ex._pid, +1)}>+</button>
+                        </div>
                         <button style={S.removeBtn} onClick={() => removeExercise(day.id, ex._pid)}>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="#c0392b" strokeWidth="2" strokeLinecap="round"/></svg>
                         </button>
@@ -214,7 +230,10 @@ const S = {
   noEx: { color: '#333', fontSize: 13, textAlign: 'center', padding: '16px 0', margin: 0 },
   exRow: { display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #161616' },
   exThumb: { width: 42, height: 42, borderRadius: 8, objectFit: 'cover', flexShrink: 0 },
-  exName: { color: '#ddd', fontSize: 13, flex: 1 },
+  exName: { color: '#ddd', fontSize: 13, flex: 1, minWidth: 0 },
+  stepper: { display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 },
+  stepBtn: { width: 26, height: 26, borderRadius: 7, background: '#1a1a1a', border: '1px solid #2a2a2a', color: '#e8c460', fontSize: 16, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 },
+  stepNum: { color: '#aaa', fontSize: 13, fontWeight: 700, minWidth: 18, textAlign: 'center' },
   removeBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   addExBtn: {
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
