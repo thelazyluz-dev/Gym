@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 
 const IMG = 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/'
@@ -143,6 +143,7 @@ const DS = {
 function ExerciseCard({ ex, done, weight, onToggle, onUpdateWeight }) {
   const [editing, setEditing] = useState(false)
   const [tempW, setTempW] = useState('')
+  const setsCount = typeof ex.sets === 'number' ? ex.sets : 4
 
   const commit = () => {
     if (tempW.trim()) onUpdateWeight(ex.id, tempW.trim())
@@ -175,7 +176,7 @@ function ExerciseCard({ ex, done, weight, onToggle, onUpdateWeight }) {
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ color: done ? '#555' : '#f0f0f0', fontSize: 14, fontWeight: 700, marginBottom: 2, transition: 'color 0.25s' }}>{ex.name}</p>
-        <p style={{ color: '#444', fontSize: 12 }}>{ex.sets} סטים</p>
+        <p style={{ color: '#444', fontSize: 12 }}>{setsCount} סטים</p>
       </div>
 
       {editing ? (
@@ -311,6 +312,17 @@ export default function ActiveWorkout({ plan, history, weights, setWeights, addT
   const [session, setSession] = useLocalStorage('gym_active_session', null)
   const [justFinished, setJustFinished] = useState(false)
 
+  // Clear sessions saved by the old format (sets was an array, not a number)
+  const cleanSession = useMemo(() => {
+    if (!session) return null
+    if (session.exercises?.some(ex => Array.isArray(ex.sets))) return null
+    return session
+  }, [session])
+
+  useEffect(() => {
+    if (session && !cleanSession) setSession(null)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!plan) {
     return (
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 32 }}>
@@ -323,10 +335,10 @@ export default function ActiveWorkout({ plan, history, weights, setWeights, addT
     )
   }
 
-  if (session) {
+  if (cleanSession) {
     return (
       <SessionView
-        session={session}
+        session={cleanSession}
         setSession={setSession}
         weights={weights}
         setWeights={setWeights}
