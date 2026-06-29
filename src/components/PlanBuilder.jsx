@@ -140,7 +140,7 @@ export default function PlanBuilder({ plan, setPlan, onReset }) {
                       onClick={e => e.stopPropagation()}
                       style={S.editInput} />
                   ) : (
-                    <span style={S.dayLabel}>{day.label}</span>
+                    <span style={S.dayLabelTxt}>{day.label}</span>
                   )}
                   <span style={S.dayCount}>{day.exercises.length} תרגילים</span>
                 </div>
@@ -182,7 +182,10 @@ export default function PlanBuilder({ plan, setPlan, onReset }) {
                         <img src={IMG + ex.image} alt={ex.name} style={S.exThumb} loading="lazy" />
                         <div style={S.exInfo}>
                           <span style={S.exName}>{ex.name}</span>
-                          {ex.reps && <span style={S.exReps}>{ex.reps} חזרות</span>}
+                          <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+                            {ex.reps && <span style={S.exReps}>{ex.reps} חזרות</span>}
+                            {ex.category && <span style={S.exCat}>{ex.category}</span>}
+                          </div>
                         </div>
                         <div style={S.stepper} onClick={e => e.stopPropagation()}>
                           <button style={S.stepBtn} onClick={() => updateSets(day.id, ex._pid, -1)}>−</button>
@@ -197,7 +200,7 @@ export default function PlanBuilder({ plan, setPlan, onReset }) {
                   }
                   <button style={S.addExBtn} onClick={() => setAdding(day.id)}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#000" strokeWidth="2.5" strokeLinecap="round"/></svg>
-                    הוסף תרגיל
+                    הוסף / שנה תרגיל
                   </button>
                 </div>
               )}
@@ -247,7 +250,7 @@ const S = {
   dayBadge: { width: 36, height: 36, borderRadius: 9, background: 'rgba(232,196,96,0.1)', border: '1px solid rgba(232,196,96,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   dayLetter: { color: '#e8c460', fontSize: 15, fontWeight: 800 },
   dayInfo: { flex: 1, display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 },
-  dayLabel: { color: '#f0f0f0', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  dayLabelTxt: { color: '#f0f0f0', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   dayCount: { color: '#555', fontSize: 11 },
   dayActions: { display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 },
   editInput: { background: '#1a1a1a', border: '1px solid #e8c460', color: '#fff', borderRadius: 7, padding: '4px 8px', fontSize: 14, outline: 'none', width: '100%' },
@@ -264,8 +267,9 @@ const S = {
   exRow: { display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #161616' },
   exThumb: { width: 42, height: 42, borderRadius: 8, objectFit: 'cover', flexShrink: 0 },
   exInfo: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 },
-  exName: { color: '#ddd', fontSize: 13 },
-  exReps: { color: '#555', fontSize: 11 },
+  exName: { color: '#ddd', fontSize: 13, marginBottom: 3 },
+  exReps: { color: '#444', fontSize: 11 },
+  exCat: { color: '#2a2a2a', fontSize: 10, background: '#1a1a1a', borderRadius: 5, padding: '1px 6px' },
   stepper: { display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 },
   stepBtn: { width: 26, height: 26, borderRadius: 7, background: '#1a1a1a', border: '1px solid #2a2a2a', color: '#e8c460', fontSize: 16, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 },
   stepNum: { color: '#aaa', fontSize: 13, fontWeight: 700, minWidth: 18, textAlign: 'center' },

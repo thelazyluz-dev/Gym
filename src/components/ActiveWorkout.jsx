@@ -2,79 +2,12 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useLocalStorage } from '../hooks/useLocalStorage'
 
 const IMG = 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/'
-const REST_SEC = 90
-
-function fmt(s) {
-  return `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`
-}
-
-// ─── Rest timer ────────────────────────────────────────────────────────────────
-
-function RestTimer({ seconds, onSkip, onAdd }) {
-  const r = 22, circ = 2 * Math.PI * r
-  const dash = circ * (seconds / REST_SEC)
-  const urgent = seconds <= 10
-
-  return (
-    <div style={RT.wrap}>
-      <div style={RT.inner}>
-        <svg width="56" height="56" viewBox="0 0 56 56">
-          <circle cx="28" cy="28" r={r} fill="none" stroke="#222" strokeWidth="4" />
-          <circle cx="28" cy="28" r={r} fill="none"
-            stroke={urgent ? '#ff4444' : '#e8c460'} strokeWidth="4"
-            strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
-            style={{ transform: 'rotate(-90deg)', transformOrigin: 'center', transition: 'stroke-dasharray 1s linear' }}
-          />
-          <text x="28" y="33" textAnchor="middle" fill="#fff" fontSize="13" fontWeight="700"
-            style={{ fontFamily: 'inherit', animation: urgent ? 'pulse 1s infinite' : 'none' }}>
-            {fmt(seconds)}
-          </text>
-        </svg>
-        <div style={RT.label}>
-          <span style={RT.title}>מנוחה</span>
-          <span style={RT.sub}>בין סטים</span>
-        </div>
-        <div style={RT.btns}>
-          <button style={RT.addBtn} onClick={() => onAdd(30)}>+30s</button>
-          <button style={RT.skipBtn} onClick={onSkip}>דלג</button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-const RT = {
-  wrap: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    background: 'linear-gradient(transparent, #0a0a0a 20%)',
-    paddingTop: 32, paddingBottom: 12, zIndex: 50,
-    animation: 'slideUp 0.25s ease',
-  },
-  inner: {
-    background: '#111', border: '1px solid #222', borderRadius: 20,
-    margin: '0 16px', padding: '14px 16px',
-    display: 'flex', alignItems: 'center', gap: 14,
-  },
-  label: { flex: 1, display: 'flex', flexDirection: 'column', gap: 2 },
-  title: { color: '#fff', fontSize: 15, fontWeight: 700 },
-  sub: { color: '#555', fontSize: 12 },
-  btns: { display: 'flex', gap: 8 },
-  addBtn: {
-    background: '#1a1a1a', border: '1px solid #333', color: '#e8c460',
-    borderRadius: 8, padding: '7px 12px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-  },
-  skipBtn: {
-    background: '#e8c460', border: 'none', color: '#000',
-    borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-  },
-}
 
 // ─── Day selector ──────────────────────────────────────────────────────────────
 
 function DaySelector({ plan, history, onStart, justFinished }) {
   const lastFor = (dayId) => history.find(h => h.dayId === dayId)
 
-  // Determine recommended next day based on last session
   const nextDayIdx = useMemo(() => {
     if (!history.length) return 0
     const lastDayId = history[0].dayId
@@ -86,37 +19,57 @@ function DaySelector({ plan, history, onStart, justFinished }) {
     <div style={DS.wrap}>
       {justFinished && (
         <div style={DS.banner}>
-          <span style={{ fontSize: 20 }}>💪</span>
-          <span>אימון נשמר! כל הכבוד</span>
+          <span style={{ fontSize: 28, lineHeight: 1 }}>💪</span>
+          <div>
+            <p style={{ color: '#4ade80', fontSize: 16, fontWeight: 800, marginBottom: 2 }}>כל הכבוד!</p>
+            <p style={{ color: '#2d5533', fontSize: 13 }}>האימון נשמר בהיסטוריה</p>
+          </div>
         </div>
       )}
-      <p style={DS.heading}>בחר יום לאימון</p>
+
       <div style={DS.list}>
         {plan.days.map((day, i) => {
           const last = lastFor(day.id)
           const empty = day.exercises.length === 0
           const isNext = !empty && i === nextDayIdx
+
+          if (isNext) return (
+            <button key={day.id} onClick={() => onStart(day)} style={DS.nextCard}>
+              <div style={DS.nextGlow} />
+              <div style={{ ...DS.badge, background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.22)' }}>
+                <span style={{ color: '#4ade80', fontSize: 19, fontWeight: 900 }}>{day.id}</span>
+              </div>
+              <div style={{ flex: 1, textAlign: 'right' }}>
+                <p style={{ color: '#3aff7a', fontSize: 11, fontWeight: 700, letterSpacing: '0.8px', marginBottom: 4, textTransform: 'uppercase' }}>האימון הבא שלך</p>
+                <p style={{ color: '#f0f0f0', fontSize: 16, fontWeight: 800, marginBottom: 3 }}>{day.label}</p>
+                <p style={{ color: '#2d6040', fontSize: 12 }}>{last ? `אחרון: ${last.date}` : `${day.exercises.length} תרגילים`}</p>
+              </div>
+              <div style={DS.startBtn}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M5 3l14 9-14 9V3z" fill="#000" />
+                </svg>
+                <span>התחל</span>
+              </div>
+            </button>
+          )
+
           return (
             <button key={day.id}
-              style={{ ...DS.dayBtn, ...(empty ? DS.disabled : {}), ...(isNext ? DS.nextBtn : {}) }}
-              onClick={() => !empty && onStart(day)}
-              disabled={empty}
+              style={{ ...DS.dayBtn, opacity: empty ? 0.3 : 1 }}
+              onClick={() => !empty && onStart(day)} disabled={empty}
             >
-              <div style={{ ...DS.badge, ...(isNext ? DS.nextBadge : {}) }}>
-                <span style={{ ...DS.badgeLetter, ...(isNext ? { color: '#4ade80' } : {}) }}>{day.id}</span>
+              <div style={DS.badge}>
+                <span style={DS.badgeLetter}>{day.id}</span>
               </div>
-              <div style={DS.mid}>
-                <span style={DS.dayLabel}>{day.label}</span>
-                <span style={DS.meta}>
-                  {empty ? 'אין תרגילים' : last ? `אחרון: ${last.date}` : `${day.exercises.length} תרגילים`}
-                </span>
+              <div style={{ flex: 1, textAlign: 'right' }}>
+                <p style={DS.dayLabel}>{day.label}</p>
+                <p style={DS.dayMeta}>{empty ? 'אין תרגילים' : last ? `אחרון: ${last.date}` : `${day.exercises.length} תרגילים`}</p>
               </div>
-              {isNext
-                ? <span style={DS.nextTag}>הבא</span>
-                : !empty && <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path d="M15 18l-6-6 6-6" stroke="#333" strokeWidth="2" strokeLinecap="round" />
-                  </svg>
-              }
+              {!empty && (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M15 18l-6-6 6-6" stroke="#252525" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              )}
             </button>
           )
         })}
@@ -126,36 +79,48 @@ function DaySelector({ plan, history, onStart, justFinished }) {
 }
 
 const DS = {
-  wrap: { flex: 1, overflowY: 'auto', padding: '16px 16px 24px' },
+  wrap: { flex: 1, overflowY: 'auto', padding: '20px 16px 36px' },
   banner: {
-    background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.2)',
-    color: '#4ade80', borderRadius: 14, padding: '13px 16px', marginBottom: 20,
-    display: 'flex', alignItems: 'center', gap: 10, fontSize: 15, fontWeight: 600,
-    animation: 'fadeIn 0.3s ease',
+    background: 'rgba(74,222,128,0.06)', border: '1px solid rgba(74,222,128,0.14)',
+    borderRadius: 18, padding: '16px 18px', marginBottom: 20,
+    display: 'flex', alignItems: 'center', gap: 14, animation: 'fadeIn 0.4s ease',
   },
-  heading: { color: '#555', fontSize: 11, fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: 12 },
   list: { display: 'flex', flexDirection: 'column', gap: 10 },
-  dayBtn: {
-    background: '#111', border: '1px solid #1e1e1e', borderRadius: 16,
-    padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14,
+  nextCard: {
+    background: 'linear-gradient(150deg, #0a1d0e 0%, #081208 100%)',
+    border: '1px solid rgba(74,222,128,0.2)',
+    borderRadius: 20, padding: '18px 16px',
+    display: 'flex', alignItems: 'center', gap: 14,
     cursor: 'pointer', width: '100%', textAlign: 'right',
+    boxShadow: '0 6px 32px rgba(74,222,128,0.07)',
+    position: 'relative', overflow: 'hidden', marginBottom: 4,
   },
-  nextBtn: { background: '#0c160d', border: '1px solid rgba(74,222,128,0.2)' },
-  disabled: { opacity: 0.35, cursor: 'default' },
+  nextGlow: {
+    position: 'absolute', top: -40, right: -40,
+    width: 160, height: 160,
+    background: 'radial-gradient(circle, rgba(74,222,128,0.1) 0%, transparent 70%)',
+    pointerEvents: 'none',
+  },
+  startBtn: {
+    background: '#4ade80', color: '#000', borderRadius: 12,
+    padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 6,
+    fontSize: 14, fontWeight: 800, flexShrink: 0,
+  },
+  dayBtn: {
+    background: '#0f0f0f', border: '1px solid #181818',
+    borderRadius: 16, padding: '14px 16px',
+    display: 'flex', alignItems: 'center', gap: 14,
+    cursor: 'pointer', width: '100%',
+    transition: 'border-color 0.2s',
+  },
   badge: {
-    width: 38, height: 38, borderRadius: 10,
-    background: 'rgba(232,196,96,0.1)', border: '1px solid rgba(232,196,96,0.2)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+    width: 42, height: 42, borderRadius: 12, flexShrink: 0,
+    background: 'rgba(232,196,96,0.07)', border: '1px solid rgba(232,196,96,0.13)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
   },
-  nextBadge: { background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.22)' },
-  badgeLetter: { color: '#e8c460', fontSize: 16, fontWeight: 800 },
-  mid: { flex: 1, display: 'flex', flexDirection: 'column', gap: 3 },
-  dayLabel: { color: '#f0f0f0', fontSize: 14, fontWeight: 600 },
-  meta: { color: '#555', fontSize: 12 },
-  nextTag: {
-    background: 'rgba(74,222,128,0.15)', color: '#4ade80',
-    fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 8, flexShrink: 0,
-  },
+  badgeLetter: { color: '#e8c460', fontSize: 17, fontWeight: 900 },
+  dayLabel: { color: '#d0d0d0', fontSize: 14, fontWeight: 600, marginBottom: 4 },
+  dayMeta: { color: '#333', fontSize: 12 },
 }
 
 // ─── Exercise card ─────────────────────────────────────────────────────────────
@@ -164,84 +129,140 @@ function ExerciseCard({ ex, done, weight, prevWeight, pr, onToggle, onUpdateWeig
   const [editing, setEditing] = useState(false)
   const [tempW, setTempW] = useState('')
   const setsCount = typeof ex.sets === 'number' ? ex.sets : 4
+  const isNewPR = pr && weight && parseFloat(weight) > pr
 
   const commit = () => {
     if (tempW.trim()) onUpdateWeight(ex.id, tempW.trim())
     setEditing(false)
   }
 
-  const isNewPR = pr && weight && parseFloat(weight) > pr
+  const borderColor = done
+    ? 'rgba(74,222,128,0.18)'
+    : isNewPR
+      ? 'rgba(232,196,96,0.4)'
+      : '#181818'
+
+  const cardBg = done
+    ? 'rgba(74,222,128,0.03)'
+    : isNewPR
+      ? 'rgba(232,196,96,0.04)'
+      : '#111'
 
   return (
     <div style={{
-      background: done ? 'rgba(74,222,128,0.05)' : '#111',
-      border: `1px solid ${done ? 'rgba(74,222,128,0.22)' : '#1e1e1e'}`,
-      borderRadius: 18, padding: '14px 16px',
-      transition: 'background 0.3s, border-color 0.3s, transform 0.2s',
-      transform: done ? 'scale(0.985)' : 'scale(1)',
-      display: 'flex', alignItems: 'center', gap: 12,
+      borderRadius: 20, border: `1px solid ${borderColor}`,
+      background: cardBg, overflow: 'hidden',
+      boxShadow: done
+        ? '0 4px 24px rgba(74,222,128,0.06)'
+        : isNewPR
+          ? '0 4px 24px rgba(232,196,96,0.08)'
+          : '0 2px 12px rgba(0,0,0,0.2)',
+      transition: 'all 0.35s ease',
     }}>
-      <button onClick={() => onToggle(ex.id)} style={{
-        width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-        border: done ? 'none' : '2px solid #333',
-        background: done ? '#4ade80' : 'rgba(255,255,255,0.03)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: 'pointer', transition: 'all 0.25s',
-        boxShadow: done ? '0 0 12px rgba(74,222,128,0.3)' : 'none',
-      }}>
-        {done
-          ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M20 6L9 17l-5-5" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" opacity="0.3">
-              <path d="M20 6L9 17l-5-5" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-        }
-      </button>
-
-      <img src={IMG + ex.image} alt={ex.name}
-        style={{ width: 48, height: 48, borderRadius: 10, objectFit: 'cover', flexShrink: 0, opacity: done ? 0.35 : 1, transition: 'opacity 0.3s' }}
-        loading="lazy"
-      />
-
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ color: done ? '#454545' : '#f0f0f0', fontSize: 14, fontWeight: 700, marginBottom: 3, transition: 'color 0.3s', textDecoration: done ? 'line-through' : 'none' }}>{ex.name}</p>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <span style={{ color: done ? '#333' : '#555', fontSize: 12, transition: 'color 0.3s' }}>
-            {setsCount} סטים{ex.reps ? ` × ${ex.reps}` : ''}
-          </span>
-          {prevWeight && !done && (
-            <span style={{ color: '#383838', fontSize: 11 }}>· קודם: {prevWeight} ק"ג</span>
-          )}
-          {isNewPR && !done && (
-            <span style={{ color: '#a0841a', fontSize: 11, fontWeight: 700 }}>🏆 שיא חדש!</span>
-          )}
+      {/* Main content row */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 14 }}>
+        {/* Image */}
+        <div style={{
+          width: 58, height: 58, borderRadius: 14, overflow: 'hidden',
+          flexShrink: 0, background: '#1a1a1a',
+          opacity: done ? 0.18 : 1, transition: 'opacity 0.35s',
+        }}>
+          <img src={IMG + ex.image} alt={ex.name} loading="lazy"
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
+
+        {/* Name + sets */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{
+            color: done ? '#282828' : '#f0f0f0',
+            fontSize: 15, fontWeight: 700, marginBottom: 7,
+            textDecoration: done ? 'line-through' : 'none',
+            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+            transition: 'color 0.3s',
+          }}>
+            {ex.name}
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 3 }}>
+              {Array.from({ length: Math.min(setsCount, 8) }).map((_, i) => (
+                <div key={i} style={{
+                  width: 7, height: 7, borderRadius: 2,
+                  background: done ? '#1e1e1e' : '#e8c460',
+                  transition: 'background 0.3s',
+                }} />
+              ))}
+            </div>
+            {ex.reps && (
+              <span style={{ color: done ? '#252525' : '#555', fontSize: 12, transition: 'color 0.3s' }}>
+                × {ex.reps}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Toggle */}
+        <button onClick={() => onToggle(ex.id)} style={{
+          width: 46, height: 46, borderRadius: '50%', flexShrink: 0,
+          border: done ? 'none' : '2px solid #1e1e1e',
+          background: done ? '#4ade80' : 'transparent',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', transition: 'all 0.3s',
+          boxShadow: done ? '0 0 22px rgba(74,222,128,0.45)' : 'none',
+        }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path d="M20 6L9 17l-5-5"
+              stroke={done ? '#000' : '#252525'}
+              strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
       </div>
 
-      {editing ? (
-        <input
-          type="number" inputMode="decimal" autoFocus
-          value={tempW}
-          onChange={e => setTempW(e.target.value)}
-          onBlur={commit}
-          onKeyDown={e => e.key === 'Enter' && commit()}
-          style={{
-            width: 72, background: '#1a1a1a', border: '1px solid #e8c460',
-            color: '#fff', borderRadius: 9, padding: '8px 6px',
-            fontSize: 15, textAlign: 'center', outline: 'none', flexShrink: 0,
-          }}
-        />
-      ) : (
-        <button onClick={() => { setTempW(weight || ''); setEditing(true) }} style={{
-          background: weight ? 'rgba(232,196,96,0.1)' : 'rgba(255,255,255,0.03)',
-          border: `1px solid ${weight ? 'rgba(232,196,96,0.3)' : '#2a2a2a'}`,
-          color: weight ? '#e8c460' : '#484848',
-          borderRadius: 9, padding: '8px 12px', fontSize: 13,
-          fontWeight: weight ? 700 : 500, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap',
+      {/* Weight row — only shown when not done */}
+      {!done && (
+        <div style={{
+          borderTop: '1px solid #161616', padding: '10px 14px',
+          display: 'flex', alignItems: 'center', gap: 10,
         }}>
-          {weight ? `${weight} ק"ג` : '+ משקל'}
-        </button>
+          <div style={{ flex: 1 }}>
+            {isNewPR
+              ? <span style={{ color: '#c9a020', fontSize: 13, fontWeight: 700 }}>🏆 שיא אישי חדש!</span>
+              : prevWeight
+                ? <span style={{ color: '#333', fontSize: 12 }}>
+                    קודם: <span style={{ color: '#484848', fontWeight: 600 }}>{prevWeight} ק"ג</span>
+                  </span>
+                : <span style={{ color: '#252525', fontSize: 12 }}>עדכן משקל</span>
+            }
+          </div>
+
+          {editing ? (
+            <input
+              type="number" inputMode="decimal" autoFocus
+              value={tempW}
+              onChange={e => setTempW(e.target.value)}
+              onBlur={commit}
+              onKeyDown={e => e.key === 'Enter' && commit()}
+              placeholder="0"
+              style={{
+                width: 88, background: '#161616', border: '1px solid #e8c460',
+                color: '#fff', borderRadius: 10, padding: '9px 10px',
+                fontSize: 17, textAlign: 'center', outline: 'none', fontWeight: 700,
+              }}
+            />
+          ) : (
+            <button onClick={() => { setTempW(weight || ''); setEditing(true) }} style={{
+              background: weight ? 'rgba(232,196,96,0.1)' : '#161616',
+              border: `1px solid ${weight ? 'rgba(232,196,96,0.35)' : '#222'}`,
+              color: weight ? '#e8c460' : '#404040',
+              borderRadius: 10, padding: '9px 18px', fontSize: 15,
+              fontWeight: weight ? 800 : 500, cursor: 'pointer',
+              minWidth: 88, textAlign: 'center',
+              boxShadow: weight ? '0 0 12px rgba(232,196,96,0.1)' : 'none',
+              transition: 'all 0.2s',
+            }}>
+              {weight ? `${weight} ק"ג` : '+ משקל'}
+            </button>
+          )}
+        </div>
       )}
     </div>
   )
@@ -251,28 +272,20 @@ function ExerciseCard({ ex, done, weight, prevWeight, pr, onToggle, onUpdateWeig
 
 function SessionView({ session, setSession, weights, setWeights, history, addToHistory }) {
   const [elapsed, setElapsed] = useState(0)
-  const [restLeft, setRestLeft] = useState(0)
 
   useEffect(() => {
     const t = setInterval(() => setElapsed(s => s + 1), 1000)
     return () => clearInterval(t)
   }, [])
 
-  useEffect(() => {
-    if (restLeft <= 0) return
-    if (restLeft === 1 && navigator.vibrate) navigator.vibrate([80, 60, 80])
-    const t = setTimeout(() => setRestLeft(r => Math.max(0, r - 1)), 1000)
-    return () => clearTimeout(t)
-  }, [restLeft])
-
-  // Previous session for the same day → show "קודם: X ק"ג" per exercise
   const prevWeights = useMemo(() => {
     const prev = history.find(h => h.dayId === session.dayId)
     if (!prev) return {}
-    return Object.fromEntries((prev.exercises || []).filter(e => e.weight).map(e => [e.id, e.weight]))
+    return Object.fromEntries(
+      (prev.exercises || []).filter(e => e.weight).map(e => [e.id, e.weight])
+    )
   }, [history, session.dayId])
 
-  // Personal records (all-time best weight per exercise, from saved history)
   const prs = useMemo(() => {
     const map = {}
     history.forEach(h => {
@@ -291,13 +304,10 @@ function SessionView({ session, setSession, weights, setWeights, history, addToH
   const toggle = useCallback((exId) => {
     setSession(prev => {
       const ids = new Set(prev.doneIds || [])
-      if (ids.has(exId)) {
-        ids.delete(exId)
-        return { ...prev, doneIds: [...ids] }
+      if (ids.has(exId)) { ids.delete(exId) } else {
+        ids.add(exId)
+        if (navigator.vibrate) navigator.vibrate(15)
       }
-      ids.add(exId)
-      setRestLeft(REST_SEC)
-      if (navigator.vibrate) navigator.vibrate(15)
       return { ...prev, doneIds: [...ids] }
     })
   }, [setSession])
@@ -324,37 +334,48 @@ function SessionView({ session, setSession, weights, setWeights, history, addToH
   const doneCount = doneIds.size
   const total = session.exercises.length
   const allDone = doneCount === total && total > 0
+  const pct = total > 0 ? (doneCount / total) * 100 : 0
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px 12px', borderBottom: '1px solid #161616', flexShrink: 0, background: '#0d0d0d' }}>
-        <div>
-          <p style={{ color: '#fff', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>{session.dayLabel}</p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ color: '#666', fontSize: 13 }}>{fmt(elapsed)}</span>
-            <span style={{ color: '#2a2a2a' }}>·</span>
-            <span style={{ color: allDone ? '#4ade80' : '#666', fontSize: 13, fontWeight: allDone ? 700 : 400, transition: 'color 0.3s' }}>
-              {doneCount}/{total} תרגילים{allDone ? ' ✓' : ''}
-            </span>
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      {/* Header */}
+      <div style={{ padding: '18px 20px 0', flexShrink: 0, background: '#0a0a0a' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
+          <div>
+            <p style={{ color: '#f0f0f0', fontSize: 19, fontWeight: 800, marginBottom: 5 }}>{session.dayLabel}</p>
+            <p style={{
+              fontSize: 13, fontWeight: 600, transition: 'color 0.3s',
+              color: allDone ? '#4ade80' : '#3a3a3a',
+            }}>
+              {doneCount} / {total} תרגילים{allDone ? ' ✓' : ''}
+            </p>
           </div>
+          <button onClick={() => setSession(null)} style={{
+            background: 'none', border: '1px solid #1e1e1e',
+            color: '#3a3a3a', borderRadius: 12, padding: '8px 16px',
+            fontSize: 13, cursor: 'pointer', marginTop: 2,
+          }}>
+            ביטול
+          </button>
         </div>
-        <button onClick={() => setSession(null)}
-          style={{ background: 'none', border: '1px solid #222', color: '#555', borderRadius: 10, padding: '7px 14px', fontSize: 13, cursor: 'pointer' }}>
-          ביטול
-        </button>
+
+        {/* Progress bar */}
+        <div style={{ height: 4, background: '#111', borderRadius: 2, overflow: 'hidden' }}>
+          <div style={{
+            height: 4, borderRadius: 2, width: `${pct}%`,
+            background: allDone
+              ? '#4ade80'
+              : 'linear-gradient(90deg, #c9a020 0%, #e8c460 100%)',
+            boxShadow: allDone
+              ? '0 0 10px rgba(74,222,128,0.5)'
+              : '0 0 8px rgba(232,196,96,0.3)',
+            transition: 'width 0.5s ease, background 0.4s',
+          }} />
+        </div>
       </div>
 
-      {/* Progress bar */}
-      <div style={{ height: 3, flexShrink: 0, background: '#0e0e0e' }}>
-        <div style={{
-          height: 3, borderRadius: '0 2px 2px 0',
-          width: `${total > 0 ? (doneCount / total) * 100 : 0}%`,
-          background: allDone ? '#4ade80' : '#e8c460',
-          transition: 'width 0.4s ease, background 0.3s',
-        }} />
-      </div>
-
-      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px 120px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {/* Exercise list */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 120px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         {session.exercises.map(ex => (
           <ExerciseCard key={ex.id}
             ex={ex}
@@ -367,17 +388,23 @@ function SessionView({ session, setSession, weights, setWeights, history, addToH
           />
         ))}
 
-        <button onClick={finish} style={{ background: '#e8c460', border: 'none', color: '#000', borderRadius: 16, padding: '16px 0', fontSize: 16, fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 6 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <button onClick={finish} style={{
+          background: allDone ? '#4ade80' : '#e8c460',
+          border: 'none', color: '#000',
+          borderRadius: 18, padding: '18px 0',
+          fontSize: 17, fontWeight: 900, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+          marginTop: 6, transition: 'all 0.35s',
+          boxShadow: allDone
+            ? '0 6px 28px rgba(74,222,128,0.28)'
+            : '0 6px 28px rgba(232,196,96,0.18)',
+        }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path d="M5 12l5 5L20 7" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          סיים אימון
+          {allDone ? '🎉 סיים אימון!' : 'סיים אימון'}
         </button>
       </div>
-
-      {restLeft > 0 && (
-        <RestTimer seconds={restLeft} onSkip={() => setRestLeft(0)} onAdd={s => setRestLeft(r => r + s)} />
-      )}
     </div>
   )
 }
@@ -388,7 +415,6 @@ export default function ActiveWorkout({ plan, history, weights, setWeights, addT
   const [session, setSession] = useLocalStorage('gym_active_session', null)
   const [justFinished, setJustFinished] = useState(false)
 
-  // Clear sessions saved by the old format (sets was an array, not a number)
   const cleanSession = useMemo(() => {
     if (!session) return null
     if (session.exercises?.some(ex => Array.isArray(ex.sets))) return null
@@ -402,7 +428,7 @@ export default function ActiveWorkout({ plan, history, weights, setWeights, addT
   if (!plan) {
     return (
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: 32 }}>
-        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" opacity="0.15">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" opacity="0.12">
           <path d="M6 12h12M3 9h2v6H3V9zm16 0h2v6h-2V9zM8 7h1v10H8V7zm7 0h1v10h-1V7z" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
         <p style={{ color: '#fff', fontSize: 18, fontWeight: 700 }}>אין תוכנית עדיין</p>

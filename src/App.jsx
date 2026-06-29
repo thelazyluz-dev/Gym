@@ -13,9 +13,12 @@ const TABS = [
 
 const Header = () => (
   <header style={S.header}>
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-      <path d="M6.5 6.5h11M6.5 17.5h11M3 12h18M7 3v18M17 3v18" stroke="#e8c460" strokeWidth="2" strokeLinecap="round"/>
-    </svg>
+    <div style={S.headerIcon}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+        <path d="M6 12h12M3 9h2v6H3V9zm16 0h2v6h-2V9zM8 7h1v10H8V7zm7 0h1v10h-1V7z"
+          stroke="#e8c460" strokeWidth="2.2" strokeLinecap="round"/>
+      </svg>
+    </div>
     <h1 style={S.title}>מאמן כושר</h1>
   </header>
 )
@@ -111,16 +114,22 @@ const S = {
     display: 'flex',
     alignItems: 'center',
     gap: 10,
-    padding: '16px 20px 14px',
-    borderBottom: '1px solid #161616',
+    padding: '14px 18px 13px',
+    borderBottom: '1px solid #141414',
     flexShrink: 0,
+    background: 'linear-gradient(180deg, #0d0d0d 0%, #0a0a0a 100%)',
   },
-  title: { fontSize: 19, fontWeight: 800, color: '#fff', letterSpacing: '-0.3px' },
+  headerIcon: {
+    width: 34, height: 34, borderRadius: 10,
+    background: 'rgba(232,196,96,0.1)', border: '1px solid rgba(232,196,96,0.18)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  title: { fontSize: 18, fontWeight: 800, color: '#f0f0f0', letterSpacing: '-0.4px' },
   main: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' },
   nav: {
     display: 'flex',
-    borderTop: '1px solid #141414',
-    background: '#070707',
+    borderTop: '1px solid #111',
+    background: '#060606',
     flexShrink: 0,
     paddingBottom: 'env(safe-area-inset-bottom, 0px)',
   },
@@ -128,14 +137,14 @@ const S = {
     flex: 1,
     background: 'none',
     border: 'none',
-    padding: '8px 0 10px',
+    padding: '10px 0 12px',
     cursor: 'pointer',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: 3,
+    gap: 4,
   },
-  navPill: { padding: '5px 16px', borderRadius: 14, transition: 'background 0.2s' },
-  navPillOn: { background: 'rgba(232,196,96,0.12)' },
-  navLabel: { fontSize: 10, fontWeight: 600, letterSpacing: '0.2px' },
+  navPill: { padding: '6px 18px', borderRadius: 14, transition: 'background 0.2s' },
+  navPillOn: { background: 'rgba(232,196,96,0.11)', boxShadow: '0 0 12px rgba(232,196,96,0.08)' },
+  navLabel: { fontSize: 10, fontWeight: 600, letterSpacing: '0.3px' },
 }
