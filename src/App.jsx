@@ -3,12 +3,22 @@ import { useLocalStorage } from './hooks/useLocalStorage'
 import PlanBuilder from './components/PlanBuilder'
 import ActiveWorkout from './components/ActiveWorkout'
 import History from './components/History'
+import Onboarding from './components/Onboarding'
 
 const TABS = [
   { id: 'plan',    label: 'תוכנית',    icon: PlanIcon },
   { id: 'workout', label: 'אימון',     icon: WorkoutIcon },
   { id: 'history', label: 'היסטוריה', icon: HistoryIcon },
 ]
+
+const Header = () => (
+  <header style={S.header}>
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+      <path d="M6.5 6.5h11M6.5 17.5h11M3 12h18M7 3v18M17 3v18" stroke="#e8c460" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+    <h1 style={S.title}>מאמן כושר</h1>
+  </header>
+)
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('plan')
@@ -18,17 +28,25 @@ export default function App() {
 
   const addToHistory = (session) => setHistory(prev => [session, ...prev])
 
+  // Onboarding: show until user has a plan
+  if (!plan) {
+    return (
+      <div dir="rtl" style={S.app}>
+        <Header />
+        <Onboarding onComplete={(newPlan, tab) => {
+          setPlan(newPlan)
+          if (tab) setActiveTab(tab)
+        }} />
+      </div>
+    )
+  }
+
   return (
     <div dir="rtl" style={S.app}>
-      <header style={S.header}>
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-          <path d="M6.5 6.5h11M6.5 17.5h11M3 12h18M7 3v18M17 3v18" stroke="#e8c460" strokeWidth="2" strokeLinecap="round"/>
-        </svg>
-        <h1 style={S.title}>מאמן כושר</h1>
-      </header>
+      <Header />
 
       <main style={S.main}>
-        {activeTab === 'plan'    && <PlanBuilder plan={plan} setPlan={setPlan} />}
+        {activeTab === 'plan'    && <PlanBuilder plan={plan} setPlan={setPlan} onReset={() => setPlan(null)} />}
         {activeTab === 'workout' && <ActiveWorkout plan={plan} history={history} weights={weights} setWeights={setWeights} addToHistory={addToHistory} />}
         {activeTab === 'history' && <History history={history} />}
       </main>

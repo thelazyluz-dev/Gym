@@ -20,6 +20,21 @@ export default function History({ history }) {
     streak: calcStreak(history),
   }), [history])
 
+  const prs = useMemo(() => {
+    const map = {}
+    history.forEach(session => {
+      session.exercises?.forEach(ex => {
+        if (ex.weight && ex.done !== false) {
+          const w = parseFloat(ex.weight)
+          if (!isNaN(w) && (!map[ex.id] || w > map[ex.id].weight)) {
+            map[ex.id] = { name: ex.name, weight: w, date: session.date }
+          }
+        }
+      })
+    })
+    return Object.values(map).sort((a, b) => b.weight - a.weight)
+  }, [history])
+
   if (!history.length) {
     return (
       <div style={S.empty}>
@@ -35,6 +50,7 @@ export default function History({ history }) {
 
   return (
     <div style={S.wrap}>
+      {/* Stats */}
       <div style={S.statsRow}>
         <div style={{ ...S.stat, borderTop: '2px solid rgba(74,222,128,0.35)' }}>
           <p style={{ ...S.statVal, color: '#4ade80' }}>{stats.total}</p>
@@ -46,6 +62,24 @@ export default function History({ history }) {
         </div>
       </div>
 
+      {/* Personal Records */}
+      {prs.length > 0 && (
+        <div style={S.prSection}>
+          <p style={S.sectionLabel}>שיאים אישיים 🏆</p>
+          <div style={S.prScroll}>
+            {prs.slice(0, 10).map((pr, i) => (
+              <div key={pr.name + i} style={S.prCard}>
+                {i < 3 && <span style={S.prMedal}>{['🥇','🥈','🥉'][i]}</span>}
+                <span style={S.prWeight}>{pr.weight}</span>
+                <span style={S.prUnit}>ק"ג</span>
+                <span style={S.prName}>{pr.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Sessions */}
       {history.map(session => (
         <SessionCard key={session.id} session={session} />
       ))}
@@ -107,6 +141,19 @@ const S = {
   stat: { background: '#111', border: '1px solid #1e1e1e', borderRadius: 14, padding: '16px 12px', textAlign: 'center' },
   statVal: { fontSize: 26, fontWeight: 900, marginBottom: 4 },
   statLabel: { color: '#555', fontSize: 11, fontWeight: 600 },
+
+  prSection: { marginBottom: 20 },
+  sectionLabel: { color: '#555', fontSize: 11, fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: 10 },
+  prScroll: { display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, msOverflowStyle: 'none' },
+  prCard: {
+    background: '#111', border: '1px solid #1e1e1e', borderRadius: 14,
+    padding: '12px 14px', flexShrink: 0,
+    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, minWidth: 76,
+  },
+  prMedal: { fontSize: 14, lineHeight: 1.4 },
+  prWeight: { color: '#e8c460', fontSize: 22, fontWeight: 900, lineHeight: 1.1 },
+  prUnit: { color: '#555', fontSize: 10 },
+  prName: { color: '#666', fontSize: 10, textAlign: 'center', maxWidth: 68, lineHeight: 1.3, marginTop: 4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' },
 
   card: { background: '#111', border: '1px solid #1e1e1e', borderRadius: 18, padding: 16, marginBottom: 12 },
   cardTop: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #1a1a1a' },

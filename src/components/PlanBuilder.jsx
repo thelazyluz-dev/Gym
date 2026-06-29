@@ -11,7 +11,7 @@ const SPLIT_DESCS = {
   CUSTOM: 'בנה את התוכנית בעצמך',
 }
 
-export default function PlanBuilder({ plan, setPlan }) {
+export default function PlanBuilder({ plan, setPlan, onReset }) {
   const [expanded, setExpanded] = useState(null)
   const [adding, setAdding]     = useState(null)
   const [editing, setEditing]   = useState(null)
@@ -119,6 +119,7 @@ export default function PlanBuilder({ plan, setPlan }) {
           </button>
         ))}
         <span style={S.splitName}>{SPLIT_CONFIGS[plan.splitType]?.label}</span>
+        <button style={S.resetBtn} onClick={onReset}>אפס</button>
       </div>
 
       {/* Days */}
@@ -276,4 +277,5 @@ const S = {
     cursor: 'pointer', width: '100%', marginTop: 12,
   },
   addDayBtn: { background: 'none', border: '1px dashed #222', color: '#555', borderRadius: 18, padding: 16, fontSize: 14, cursor: 'pointer', width: '100%', textAlign: 'center', marginTop: 4 },
+  resetBtn: { background: 'none', border: '1px solid #2a2a2a', color: '#444', borderRadius: 50, padding: '5px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer', flexShrink: 0, marginRight: 'auto' },
 }

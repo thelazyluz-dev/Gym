@@ -74,6 +74,14 @@ const RT = {
 function DaySelector({ plan, history, onStart, justFinished }) {
   const lastFor = (dayId) => history.find(h => h.dayId === dayId)
 
+  // Determine recommended next day based on last session
+  const nextDayIdx = useMemo(() => {
+    if (!history.length) return 0
+    const lastDayId = history[0].dayId
+    const idx = plan.days.findIndex(d => d.id === lastDayId)
+    return idx === -1 ? 0 : (idx + 1) % plan.days.length
+  }, [plan, history])
+
   return (
     <div style={DS.wrap}>
       {justFinished && (
@@ -84,25 +92,31 @@ function DaySelector({ plan, history, onStart, justFinished }) {
       )}
       <p style={DS.heading}>בחר יום לאימון</p>
       <div style={DS.list}>
-        {plan.days.map(day => {
+        {plan.days.map((day, i) => {
           const last = lastFor(day.id)
           const empty = day.exercises.length === 0
+          const isNext = !empty && i === nextDayIdx
           return (
             <button key={day.id}
-              style={{ ...DS.dayBtn, ...(empty ? DS.disabled : {}) }}
+              style={{ ...DS.dayBtn, ...(empty ? DS.disabled : {}), ...(isNext ? DS.nextBtn : {}) }}
               onClick={() => !empty && onStart(day)}
               disabled={empty}
             >
-              <div style={DS.badge}><span style={DS.badgeLetter}>{day.id}</span></div>
+              <div style={{ ...DS.badge, ...(isNext ? DS.nextBadge : {}) }}>
+                <span style={{ ...DS.badgeLetter, ...(isNext ? { color: '#4ade80' } : {}) }}>{day.id}</span>
+              </div>
               <div style={DS.mid}>
                 <span style={DS.dayLabel}>{day.label}</span>
                 <span style={DS.meta}>
                   {empty ? 'אין תרגילים' : last ? `אחרון: ${last.date}` : `${day.exercises.length} תרגילים`}
                 </span>
               </div>
-              {!empty && <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M15 18l-6-6 6-6" stroke="#333" strokeWidth="2" strokeLinecap="round" />
-              </svg>}
+              {isNext
+                ? <span style={DS.nextTag}>הבא</span>
+                : !empty && <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M15 18l-6-6 6-6" stroke="#333" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+              }
             </button>
           )
         })}
@@ -126,21 +140,27 @@ const DS = {
     padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14,
     cursor: 'pointer', width: '100%', textAlign: 'right',
   },
+  nextBtn: { background: '#0c160d', border: '1px solid rgba(74,222,128,0.2)' },
   disabled: { opacity: 0.35, cursor: 'default' },
   badge: {
     width: 38, height: 38, borderRadius: 10,
     background: 'rgba(232,196,96,0.1)', border: '1px solid rgba(232,196,96,0.2)',
     display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
+  nextBadge: { background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.22)' },
   badgeLetter: { color: '#e8c460', fontSize: 16, fontWeight: 800 },
   mid: { flex: 1, display: 'flex', flexDirection: 'column', gap: 3 },
   dayLabel: { color: '#f0f0f0', fontSize: 14, fontWeight: 600 },
   meta: { color: '#555', fontSize: 12 },
+  nextTag: {
+    background: 'rgba(74,222,128,0.15)', color: '#4ade80',
+    fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 8, flexShrink: 0,
+  },
 }
 
 // ─── Exercise card ─────────────────────────────────────────────────────────────
 
-function ExerciseCard({ ex, done, weight, onToggle, onUpdateWeight }) {
+function ExerciseCard({ ex, done, weight, prevWeight, pr, onToggle, onUpdateWeight }) {
   const [editing, setEditing] = useState(false)
   const [tempW, setTempW] = useState('')
   const setsCount = typeof ex.sets === 'number' ? ex.sets : 4
@@ -149,6 +169,8 @@ function ExerciseCard({ ex, done, weight, onToggle, onUpdateWeight }) {
     if (tempW.trim()) onUpdateWeight(ex.id, tempW.trim())
     setEditing(false)
   }
+
+  const isNewPR = pr && weight && parseFloat(weight) > pr
 
   return (
     <div style={{
@@ -183,8 +205,18 @@ function ExerciseCard({ ex, done, weight, onToggle, onUpdateWeight }) {
       />
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ color: done ? '#454545' : '#f0f0f0', fontSize: 14, fontWeight: 700, marginBottom: 2, transition: 'color 0.3s', textDecoration: done ? 'line-through' : 'none' }}>{ex.name}</p>
-        <p style={{ color: done ? '#333' : '#555', fontSize: 12, transition: 'color 0.3s' }}>{setsCount} סטים{ex.reps ? ` × ${ex.reps}` : ''}</p>
+        <p style={{ color: done ? '#454545' : '#f0f0f0', fontSize: 14, fontWeight: 700, marginBottom: 3, transition: 'color 0.3s', textDecoration: done ? 'line-through' : 'none' }}>{ex.name}</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <span style={{ color: done ? '#333' : '#555', fontSize: 12, transition: 'color 0.3s' }}>
+            {setsCount} סטים{ex.reps ? ` × ${ex.reps}` : ''}
+          </span>
+          {prevWeight && !done && (
+            <span style={{ color: '#383838', fontSize: 11 }}>· קודם: {prevWeight} ק"ג</span>
+          )}
+          {isNewPR && !done && (
+            <span style={{ color: '#a0841a', fontSize: 11, fontWeight: 700 }}>🏆 שיא חדש!</span>
+          )}
+        </div>
       </div>
 
       {editing ? (
@@ -217,7 +249,7 @@ function ExerciseCard({ ex, done, weight, onToggle, onUpdateWeight }) {
 
 // ─── Session view ──────────────────────────────────────────────────────────────
 
-function SessionView({ session, setSession, weights, setWeights, addToHistory }) {
+function SessionView({ session, setSession, weights, setWeights, history, addToHistory }) {
   const [elapsed, setElapsed] = useState(0)
   const [restLeft, setRestLeft] = useState(0)
 
@@ -232,6 +264,27 @@ function SessionView({ session, setSession, weights, setWeights, addToHistory })
     const t = setTimeout(() => setRestLeft(r => Math.max(0, r - 1)), 1000)
     return () => clearTimeout(t)
   }, [restLeft])
+
+  // Previous session for the same day → show "קודם: X ק"ג" per exercise
+  const prevWeights = useMemo(() => {
+    const prev = history.find(h => h.dayId === session.dayId)
+    if (!prev) return {}
+    return Object.fromEntries((prev.exercises || []).filter(e => e.weight).map(e => [e.id, e.weight]))
+  }, [history, session.dayId])
+
+  // Personal records (all-time best weight per exercise, from saved history)
+  const prs = useMemo(() => {
+    const map = {}
+    history.forEach(h => {
+      h.exercises?.forEach(ex => {
+        if (ex.weight && ex.done !== false) {
+          const w = parseFloat(ex.weight)
+          if (!isNaN(w) && (!map[ex.id] || w > map[ex.id])) map[ex.id] = w
+        }
+      })
+    })
+    return map
+  }, [history])
 
   const doneIds = new Set(session.doneIds || [])
 
@@ -270,7 +323,6 @@ function SessionView({ session, setSession, weights, setWeights, addToHistory })
 
   const doneCount = doneIds.size
   const total = session.exercises.length
-
   const allDone = doneCount === total && total > 0
 
   return (
@@ -308,6 +360,8 @@ function SessionView({ session, setSession, weights, setWeights, addToHistory })
             ex={ex}
             done={doneIds.has(ex.id)}
             weight={weights[ex.id]}
+            prevWeight={prevWeights[ex.id]}
+            pr={prs[ex.id]}
             onToggle={toggle}
             onUpdateWeight={updateWeight}
           />
@@ -364,6 +418,7 @@ export default function ActiveWorkout({ plan, history, weights, setWeights, addT
         setSession={setSession}
         weights={weights}
         setWeights={setWeights}
+        history={history}
         addToHistory={entry => { addToHistory(entry); setSession(null); setJustFinished(true) }}
       />
     )
