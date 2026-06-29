@@ -176,7 +176,7 @@ function ExerciseCard({ ex, done, weight, onToggle, onUpdateWeight }) {
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ color: done ? '#555' : '#f0f0f0', fontSize: 14, fontWeight: 700, marginBottom: 2, transition: 'color 0.25s' }}>{ex.name}</p>
-        <p style={{ color: '#444', fontSize: 12 }}>{setsCount} סטים</p>
+        <p style={{ color: '#444', fontSize: 12 }}>{setsCount} סטים{ex.reps ? ` × ${ex.reps}` : ''}</p>
       </div>
 
       {editing ? (
@@ -358,6 +358,7 @@ export default function ActiveWorkout({ plan, history, weights, setWeights, addT
           exercises: day.exercises.map(ex => ({
             id: ex.id, name: ex.name, image: ex.image,
             sets: typeof ex.sets === 'number' ? ex.sets : 4,
+            reps: ex.reps || '',
           })),
         })
       }}

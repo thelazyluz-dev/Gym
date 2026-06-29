@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { SPLIT_CONFIGS } from '../utils/splits'
 import ExerciseLibrary from './ExerciseLibrary'
+import { getTemplate, GOALS } from '../utils/templates'
 const IMG = 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/'
 const SPLIT_KEYS = Object.keys(SPLIT_CONFIGS)
 
@@ -61,6 +62,15 @@ export default function PlanBuilder({ plan, setPlan }) {
   const removeDay = (id) => {
     setPlan(prev => ({ ...prev, days: prev.days.filter(d => d.id !== id) }))
     if (expanded === id) setExpanded(null)
+  }
+
+  const applyTemplate = (dayId, goalId) => {
+    const exs = getTemplate(plan.splitType, dayId, goalId)
+    if (!exs.length) return
+    setPlan(prev => ({
+      ...prev,
+      days: prev.days.map(d => d.id !== dayId ? d : { ...d, exercises: exs }),
+    }))
   }
 
   // ── No plan: split picker ──────────────────────────────────────────────────
@@ -145,12 +155,26 @@ export default function PlanBuilder({ plan, setPlan }) {
               {/* body */}
               {open && (
                 <div style={S.dayBody}>
-                  {day.exercises.length === 0
-                    ? <p style={S.noEx}>לחץ "הוסף תרגיל" כדי לבנות את היום</p>
-                    : day.exercises.map(ex => (
+                  {day.exercises.length === 0 ? (
+                    <div style={S.emptyDay}>
+                      <p style={S.noEx}>בחר מטרה לקבל תוכנית מומלצת:</p>
+                      <div style={S.goalRow}>
+                        {GOALS.map(g => (
+                          <button key={g.id} style={{ ...S.goalBtn, background: g.color, color: g.textColor }}
+                            onClick={() => applyTemplate(day.id, g.id)}>
+                            <span style={S.goalLabel}>{g.label}</span>
+                            <span style={S.goalSub}>{g.sub}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : day.exercises.map(ex => (
                       <div key={ex._pid} style={S.exRow}>
                         <img src={IMG + ex.image} alt={ex.name} style={S.exThumb} loading="lazy" />
-                        <span style={S.exName}>{ex.name}</span>
+                        <div style={S.exInfo}>
+                          <span style={S.exName}>{ex.name}</span>
+                          {ex.reps && <span style={S.exReps}>{ex.reps} חזרות</span>}
+                        </div>
                         <div style={S.stepper} onClick={e => e.stopPropagation()}>
                           <button style={S.stepBtn} onClick={() => updateSets(day.id, ex._pid, -1)}>−</button>
                           <span style={S.stepNum}>{ex.sets || 4}</span>
@@ -220,10 +244,17 @@ const S = {
   iconBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' },
 
   dayBody: { padding: '0 16px 16px', borderTop: '1px solid #181818' },
-  noEx: { color: '#333', fontSize: 13, textAlign: 'center', padding: '16px 0', margin: 0 },
+  emptyDay: { paddingTop: 12 },
+  noEx: { color: '#555', fontSize: 12, textAlign: 'center', marginBottom: 10 },
+  goalRow: { display: 'flex', gap: 8, marginBottom: 4 },
+  goalBtn: { flex: 1, border: 'none', borderRadius: 12, padding: '10px 6px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 },
+  goalLabel: { fontSize: 14, fontWeight: 800, lineHeight: 1 },
+  goalSub: { fontSize: 11, fontWeight: 500, opacity: 0.75 },
   exRow: { display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #161616' },
   exThumb: { width: 42, height: 42, borderRadius: 8, objectFit: 'cover', flexShrink: 0 },
-  exName: { color: '#ddd', fontSize: 13, flex: 1, minWidth: 0 },
+  exInfo: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 },
+  exName: { color: '#ddd', fontSize: 13 },
+  exReps: { color: '#555', fontSize: 11 },
   stepper: { display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 },
   stepBtn: { width: 26, height: 26, borderRadius: 7, background: '#1a1a1a', border: '1px solid #2a2a2a', color: '#e8c460', fontSize: 16, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 },
   stepNum: { color: '#aaa', fontSize: 13, fontWeight: 700, minWidth: 18, textAlign: 'center' },

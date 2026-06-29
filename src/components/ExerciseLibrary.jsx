@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import exercises from '../data/exercises.json'
 import { translateCategory, translateEquipment } from '../utils/translations'
+import { POPULAR_IDS } from '../utils/templates'
 
 const IMG = 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/'
 const ITEM_H = 78
@@ -123,7 +124,8 @@ export default function ExerciseLibrary({ onSelect, onClose }) {
   const filtered = useMemo(() => {
     const q = search.toLowerCase()
     return exercises.filter(ex => {
-      if (cat && ex.category !== cat) return false
+      if (cat === '__popular__' && !POPULAR_IDS.has(ex.id)) return false
+      if (cat && cat !== '__popular__' && ex.category !== cat) return false
       if (eq  && ex.equipment !== eq)  return false
       if (q && !ex.name.toLowerCase().includes(q) && !(ex.muscle_group || '').toLowerCase().includes(q)) return false
       return true
@@ -161,6 +163,7 @@ export default function ExerciseLibrary({ onSelect, onClose }) {
             {/* Category chips */}
             <div style={{ display: 'flex', gap: 7, overflowX: 'auto', padding: '0 16px 10px', flexShrink: 0, msOverflowStyle: 'none' }}>
               <Chip label="הכל" active={cat === ''} onClick={() => setCat('')} />
+              <Chip label="פופולרי 🔥" active={cat === '__popular__'} onClick={() => setCat(cat === '__popular__' ? '' : '__popular__')} />
               {CATS.map(c => <Chip key={c} label={translateCategory(c)} active={cat === c} onClick={() => setCat(cat === c ? '' : c)} />)}
             </div>
 
