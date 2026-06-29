@@ -189,7 +189,10 @@ export default function PlanBuilder({ plan, setPlan, onReset }) {
                         </div>
                         <div style={S.stepper} onClick={e => e.stopPropagation()}>
                           <button style={S.stepBtn} onClick={() => updateSets(day.id, ex._pid, -1)}>−</button>
-                          <span style={S.stepNum}>{ex.sets || 4}</span>
+                          <div style={S.stepCenter}>
+                            <span style={S.stepNum}>{ex.sets || 4}</span>
+                            <span style={S.stepLabel}>סטים</span>
+                          </div>
                           <button style={S.stepBtn} onClick={() => updateSets(day.id, ex._pid, +1)}>+</button>
                         </div>
                         <button style={S.removeBtn} onClick={() => removeExercise(day.id, ex._pid)}>
@@ -271,8 +274,10 @@ const S = {
   exReps: { color: '#444', fontSize: 11 },
   exCat: { color: '#2a2a2a', fontSize: 10, background: '#1a1a1a', borderRadius: 5, padding: '1px 6px' },
   stepper: { display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 },
-  stepBtn: { width: 26, height: 26, borderRadius: 7, background: '#1a1a1a', border: '1px solid #2a2a2a', color: '#e8c460', fontSize: 16, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 },
-  stepNum: { color: '#aaa', fontSize: 13, fontWeight: 700, minWidth: 18, textAlign: 'center' },
+  stepBtn: { width: 28, height: 28, borderRadius: 7, background: '#1a1a1a', border: '1px solid #2a2a2a', color: '#e8c460', fontSize: 16, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 },
+  stepCenter: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, minWidth: 30 },
+  stepNum: { color: '#ccc', fontSize: 15, fontWeight: 800, lineHeight: 1 },
+  stepLabel: { color: '#333', fontSize: 9, fontWeight: 600 },
   removeBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   addExBtn: {
     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
