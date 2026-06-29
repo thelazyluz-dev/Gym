@@ -38,9 +38,10 @@ export default function App() {
           const active = activeTab === id
           return (
             <button key={id} style={S.navBtn} onClick={() => setActiveTab(id)}>
-              <Icon active={active} />
-              <span style={{ ...S.navLabel, color: active ? '#e8c460' : '#3a3a3a' }}>{label}</span>
-              {active && <span style={S.dot} />}
+              <div style={{ ...S.navPill, ...(active ? S.navPillOn : {}) }}>
+                <Icon active={active} />
+              </div>
+              <span style={{ ...S.navLabel, color: active ? '#e8c460' : '#484848' }}>{label}</span>
             </button>
           )
         })}
@@ -100,8 +101,8 @@ const S = {
   main: { flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' },
   nav: {
     display: 'flex',
-    borderTop: '1px solid #161616',
-    background: '#080808',
+    borderTop: '1px solid #141414',
+    background: '#070707',
     flexShrink: 0,
     paddingBottom: 'env(safe-area-inset-bottom, 0px)',
   },
@@ -109,21 +110,14 @@ const S = {
     flex: 1,
     background: 'none',
     border: 'none',
-    padding: '10px 0 6px',
+    padding: '8px 0 10px',
     cursor: 'pointer',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: 4,
-    position: 'relative',
+    gap: 3,
   },
+  navPill: { padding: '5px 16px', borderRadius: 14, transition: 'background 0.2s' },
+  navPillOn: { background: 'rgba(232,196,96,0.12)' },
   navLabel: { fontSize: 10, fontWeight: 600, letterSpacing: '0.2px' },
-  dot: {
-    position: 'absolute',
-    bottom: 3,
-    width: 4,
-    height: 4,
-    borderRadius: '50%',
-    background: '#e8c460',
-  },
 }

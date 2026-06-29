@@ -4,6 +4,12 @@ import ExerciseLibrary from './ExerciseLibrary'
 import { getTemplate, GOALS } from '../utils/templates'
 const IMG = 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/'
 const SPLIT_KEYS = Object.keys(SPLIT_CONFIGS)
+const SPLIT_DESCS = {
+  AB:     'חזה+כתפיים / גב+רגליים',
+  ABC:    'חזה / גב+זרועות / רגליים',
+  PPL:    'דחיפה / משיכה / רגליים / קרדיו',
+  CUSTOM: 'בנה את התוכנית בעצמך',
+}
 
 export default function PlanBuilder({ plan, setPlan }) {
   const [expanded, setExpanded] = useState(null)
@@ -91,6 +97,7 @@ export default function PlanBuilder({ plan, setPlan }) {
             <button key={key} style={S.splitCard} onClick={() => changeSplit(key)}>
               <span style={S.splitDays}>{SPLIT_CONFIGS[key].days.length}</span>
               <span style={S.splitLabel}>{SPLIT_CONFIGS[key].label}</span>
+              <span style={S.splitDesc}>{SPLIT_DESCS[key]}</span>
             </button>
           ))}
         </div>
@@ -157,13 +164,14 @@ export default function PlanBuilder({ plan, setPlan }) {
                 <div style={S.dayBody}>
                   {day.exercises.length === 0 ? (
                     <div style={S.emptyDay}>
-                      <p style={S.noEx}>בחר מטרה לקבל תוכנית מומלצת:</p>
+                      <p style={S.noEx}>בחר מטרה כדי לקבל תוכנית מומלצת</p>
                       <div style={S.goalRow}>
                         {GOALS.map(g => (
                           <button key={g.id} style={{ ...S.goalBtn, background: g.color, color: g.textColor }}
                             onClick={() => applyTemplate(day.id, g.id)}>
                             <span style={S.goalLabel}>{g.label}</span>
                             <span style={S.goalSub}>{g.sub}</span>
+                            <span style={S.goalDesc}>{g.desc}</span>
                           </button>
                         ))}
                       </div>
@@ -225,6 +233,7 @@ const S = {
   },
   splitDays: { color: '#e8c460', fontSize: 32, fontWeight: 900, lineHeight: 1 },
   splitLabel: { color: '#888', fontSize: 12, lineHeight: 1.4 },
+  splitDesc: { color: '#3a3a3a', fontSize: 11, lineHeight: 1.4, textAlign: 'center' },
 
   chipsRow: { display: 'flex', alignItems: 'center', gap: 7, marginBottom: 18, flexWrap: 'nowrap', overflowX: 'auto' },
   chip: { background: '#1a1a1a', border: '1px solid #222', color: '#666', borderRadius: 50, padding: '6px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', flexShrink: 0 },
@@ -247,9 +256,10 @@ const S = {
   emptyDay: { paddingTop: 12 },
   noEx: { color: '#555', fontSize: 12, textAlign: 'center', marginBottom: 10 },
   goalRow: { display: 'flex', gap: 8, marginBottom: 4 },
-  goalBtn: { flex: 1, border: 'none', borderRadius: 12, padding: '10px 6px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 },
-  goalLabel: { fontSize: 14, fontWeight: 800, lineHeight: 1 },
-  goalSub: { fontSize: 11, fontWeight: 500, opacity: 0.75 },
+  goalBtn: { flex: 1, border: 'none', borderRadius: 14, padding: '14px 6px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 },
+  goalLabel: { fontSize: 16, fontWeight: 900, lineHeight: 1 },
+  goalSub: { fontSize: 12, fontWeight: 700, opacity: 0.85 },
+  goalDesc: { fontSize: 10, opacity: 0.65 },
   exRow: { display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #161616' },
   exThumb: { width: 42, height: 42, borderRadius: 8, objectFit: 'cover', flexShrink: 0 },
   exInfo: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 },

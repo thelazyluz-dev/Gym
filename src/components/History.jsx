@@ -23,7 +23,7 @@ export default function History({ history }) {
   if (!history.length) {
     return (
       <div style={S.empty}>
-        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" opacity="0.15">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" opacity="0.12">
           <path d="M12 6v6l4 2" stroke="#fff" strokeWidth="1.5" strokeLinecap="round"/>
           <circle cx="12" cy="12" r="9" stroke="#fff" strokeWidth="1.5"/>
         </svg>
@@ -36,12 +36,12 @@ export default function History({ history }) {
   return (
     <div style={S.wrap}>
       <div style={S.statsRow}>
-        <div style={S.stat}>
-          <p style={S.statVal}>{stats.total}</p>
+        <div style={{ ...S.stat, borderTop: '2px solid rgba(74,222,128,0.35)' }}>
+          <p style={{ ...S.statVal, color: '#4ade80' }}>{stats.total}</p>
           <p style={S.statLabel}>אימונים</p>
         </div>
-        <div style={S.stat}>
-          <p style={S.statVal}>{stats.streak}🔥</p>
+        <div style={{ ...S.stat, borderTop: '2px solid rgba(251,146,60,0.35)' }}>
+          <p style={{ ...S.statVal, color: '#fb923c' }}>{stats.streak} 🔥</p>
           <p style={S.statLabel}>רצף ימים</p>
         </div>
       </div>
@@ -55,25 +55,31 @@ export default function History({ history }) {
 
 function SessionCard({ session }) {
   const dayLetter = session.dayId || session.dayLabel?.charAt(4) || '?'
-  const doneCount = session.exercises?.filter(e => e.done !== false).length ?? session.exercises?.length ?? 0
+  const total = session.exercises?.length ?? 0
+  const doneCount = session.exercises?.filter(e => e.done !== false).length ?? total
+  const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0
+  const allDone = pct === 100
 
   return (
     <div style={S.card}>
       <div style={S.cardTop}>
-        <div style={S.badge}>
-          <span style={S.badgeLetter}>{dayLetter}</span>
+        <div style={{ ...S.badge, ...(allDone ? S.badgeDone : {}) }}>
+          <span style={{ ...S.badgeLetter, ...(allDone ? { color: '#4ade80' } : {}) }}>{dayLetter}</span>
         </div>
         <div style={S.cardMid}>
           <p style={S.cardLabel}>{session.dayLabel}</p>
           <p style={S.cardMeta}>{session.date}{session.duration > 0 ? ` · ${session.duration} דק׳` : ''}</p>
         </div>
-        <p style={S.cardCount}>{doneCount}/{session.exercises?.length ?? 0}</p>
+        <div style={S.cardRight}>
+          <p style={{ ...S.cardCount, color: allDone ? '#4ade80' : '#555' }}>{doneCount}/{total}</p>
+          <p style={{ ...S.cardPct, color: allDone ? '#4ade80' : '#444' }}>{pct}%</p>
+        </div>
       </div>
 
       <div style={S.exList}>
         {session.exercises?.map((ex, i) => (
-          <div key={i} style={{ ...S.exRow, opacity: ex.done === false ? 0.4 : 1 }}>
-            <span style={S.exName}>{ex.name}</span>
+          <div key={i} style={{ ...S.exRow, opacity: ex.done === false ? 0.35 : 1 }}>
+            <span style={{ ...S.exName, textDecoration: ex.done === false ? 'line-through' : 'none' }}>{ex.name}</span>
             <div style={S.exMeta}>
               <span style={S.exSets}>{ex.sets} סטים</span>
               {ex.weight && <span style={S.exWeight}>{ex.weight} ק"ג</span>}
@@ -81,6 +87,12 @@ function SessionCard({ session }) {
           </div>
         ))}
       </div>
+
+      {total > 0 && (
+        <div style={S.prog}>
+          <div style={{ ...S.progFill, width: `${pct}%`, background: allDone ? '#4ade80' : '#e8c460' }} />
+        </div>
+      )}
     </div>
   )
 }
@@ -93,22 +105,28 @@ const S = {
 
   statsRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 },
   stat: { background: '#111', border: '1px solid #1e1e1e', borderRadius: 14, padding: '16px 12px', textAlign: 'center' },
-  statVal: { color: '#e8c460', fontSize: 24, fontWeight: 800, marginBottom: 4 },
+  statVal: { fontSize: 26, fontWeight: 900, marginBottom: 4 },
   statLabel: { color: '#555', fontSize: 11, fontWeight: 600 },
 
   card: { background: '#111', border: '1px solid #1e1e1e', borderRadius: 18, padding: 16, marginBottom: 12 },
-  cardTop: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14, paddingBottom: 12, borderBottom: '1px solid #1a1a1a' },
-  badge: { width: 36, height: 36, borderRadius: 9, background: 'rgba(232,196,96,0.1)', border: '1px solid rgba(232,196,96,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  cardTop: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12, paddingBottom: 12, borderBottom: '1px solid #1a1a1a' },
+  badge: { width: 36, height: 36, borderRadius: 9, background: 'rgba(232,196,96,0.08)', border: '1px solid rgba(232,196,96,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  badgeDone: { background: 'rgba(74,222,128,0.08)', border: '1px solid rgba(74,222,128,0.22)' },
   badgeLetter: { color: '#e8c460', fontSize: 14, fontWeight: 800 },
   cardMid: { flex: 1 },
   cardLabel: { color: '#f0f0f0', fontSize: 14, fontWeight: 700, marginBottom: 2 },
   cardMeta: { color: '#555', fontSize: 12 },
-  cardCount: { color: '#555', fontSize: 13, fontWeight: 600, flexShrink: 0 },
+  cardRight: { display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1, flexShrink: 0 },
+  cardCount: { fontSize: 13, fontWeight: 700 },
+  cardPct: { fontSize: 11, fontWeight: 600 },
 
-  exList: { display: 'flex', flexDirection: 'column', gap: 8 },
-  exRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, transition: 'opacity 0.2s' },
+  exList: { display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 4 },
+  exRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
   exName: { color: '#bbb', fontSize: 13, fontWeight: 500 },
   exMeta: { display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 },
   exSets: { color: '#444', fontSize: 12 },
   exWeight: { color: '#e8c460', fontSize: 12, fontWeight: 700 },
+
+  prog: { height: 3, background: '#1a1a1a', borderRadius: 2, overflow: 'hidden', marginTop: 10 },
+  progFill: { height: 3, borderRadius: 2, transition: 'width 0.4s ease' },
 }

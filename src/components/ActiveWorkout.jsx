@@ -152,31 +152,39 @@ function ExerciseCard({ ex, done, weight, onToggle, onUpdateWeight }) {
 
   return (
     <div style={{
-      background: done ? 'rgba(74,222,128,0.04)' : '#111',
-      border: `1px solid ${done ? 'rgba(74,222,128,0.18)' : '#1e1e1e'}`,
-      borderRadius: 18, padding: '14px 16px', transition: 'all 0.25s',
+      background: done ? 'rgba(74,222,128,0.05)' : '#111',
+      border: `1px solid ${done ? 'rgba(74,222,128,0.22)' : '#1e1e1e'}`,
+      borderRadius: 18, padding: '14px 16px',
+      transition: 'background 0.3s, border-color 0.3s, transform 0.2s',
+      transform: done ? 'scale(0.985)' : 'scale(1)',
       display: 'flex', alignItems: 'center', gap: 12,
     }}>
       <button onClick={() => onToggle(ex.id)} style={{
         width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
-        border: done ? 'none' : '2px solid #2a2a2a',
-        background: done ? '#4ade80' : 'transparent',
+        border: done ? 'none' : '2px solid #333',
+        background: done ? '#4ade80' : 'rgba(255,255,255,0.03)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: 'pointer', transition: 'all 0.2s',
+        cursor: 'pointer', transition: 'all 0.25s',
+        boxShadow: done ? '0 0 12px rgba(74,222,128,0.3)' : 'none',
       }}>
-        {done && <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <path d="M20 6L9 17l-5-5" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>}
+        {done
+          ? <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M20 6L9 17l-5-5" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" opacity="0.3">
+              <path d="M20 6L9 17l-5-5" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+        }
       </button>
 
       <img src={IMG + ex.image} alt={ex.name}
-        style={{ width: 48, height: 48, borderRadius: 10, objectFit: 'cover', flexShrink: 0, opacity: done ? 0.4 : 1, transition: 'opacity 0.25s' }}
+        style={{ width: 48, height: 48, borderRadius: 10, objectFit: 'cover', flexShrink: 0, opacity: done ? 0.35 : 1, transition: 'opacity 0.3s' }}
         loading="lazy"
       />
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ color: done ? '#555' : '#f0f0f0', fontSize: 14, fontWeight: 700, marginBottom: 2, transition: 'color 0.25s' }}>{ex.name}</p>
-        <p style={{ color: '#444', fontSize: 12 }}>{setsCount} סטים{ex.reps ? ` × ${ex.reps}` : ''}</p>
+        <p style={{ color: done ? '#454545' : '#f0f0f0', fontSize: 14, fontWeight: 700, marginBottom: 2, transition: 'color 0.3s', textDecoration: done ? 'line-through' : 'none' }}>{ex.name}</p>
+        <p style={{ color: done ? '#333' : '#555', fontSize: 12, transition: 'color 0.3s' }}>{setsCount} סטים{ex.reps ? ` × ${ex.reps}` : ''}</p>
       </div>
 
       {editing ? (
@@ -194,13 +202,13 @@ function ExerciseCard({ ex, done, weight, onToggle, onUpdateWeight }) {
         />
       ) : (
         <button onClick={() => { setTempW(weight || ''); setEditing(true) }} style={{
-          background: weight ? 'rgba(232,196,96,0.1)' : '#1a1a1a',
-          border: `1px solid ${weight ? 'rgba(232,196,96,0.3)' : '#242424'}`,
-          color: weight ? '#e8c460' : '#555',
+          background: weight ? 'rgba(232,196,96,0.1)' : 'rgba(255,255,255,0.03)',
+          border: `1px solid ${weight ? 'rgba(232,196,96,0.3)' : '#2a2a2a'}`,
+          color: weight ? '#e8c460' : '#484848',
           borderRadius: 9, padding: '8px 12px', fontSize: 13,
-          fontWeight: weight ? 700 : 400, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap',
+          fontWeight: weight ? 700 : 500, cursor: 'pointer', flexShrink: 0, whiteSpace: 'nowrap',
         }}>
-          {weight ? `${weight} ק"ג` : 'משקל?'}
+          {weight ? `${weight} ק"ג` : '+ משקל'}
         </button>
       )}
     </div>
@@ -263,21 +271,35 @@ function SessionView({ session, setSession, weights, setWeights, addToHistory })
   const doneCount = doneIds.size
   const total = session.exercises.length
 
+  const allDone = doneCount === total && total > 0
+
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px 12px', borderBottom: '1px solid #161616', flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px 12px', borderBottom: '1px solid #161616', flexShrink: 0, background: '#0d0d0d' }}>
         <div>
           <p style={{ color: '#fff', fontSize: 16, fontWeight: 700, marginBottom: 4 }}>{session.dayLabel}</p>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ color: '#666', fontSize: 13 }}>{fmt(elapsed)}</span>
-            <span style={{ color: '#333' }}>·</span>
-            <span style={{ color: '#666', fontSize: 13 }}>{doneCount}/{total} תרגילים</span>
+            <span style={{ color: '#2a2a2a' }}>·</span>
+            <span style={{ color: allDone ? '#4ade80' : '#666', fontSize: 13, fontWeight: allDone ? 700 : 400, transition: 'color 0.3s' }}>
+              {doneCount}/{total} תרגילים{allDone ? ' ✓' : ''}
+            </span>
           </div>
         </div>
         <button onClick={() => setSession(null)}
           style={{ background: 'none', border: '1px solid #222', color: '#555', borderRadius: 10, padding: '7px 14px', fontSize: 13, cursor: 'pointer' }}>
           ביטול
         </button>
+      </div>
+
+      {/* Progress bar */}
+      <div style={{ height: 3, flexShrink: 0, background: '#0e0e0e' }}>
+        <div style={{
+          height: 3, borderRadius: '0 2px 2px 0',
+          width: `${total > 0 ? (doneCount / total) * 100 : 0}%`,
+          background: allDone ? '#4ade80' : '#e8c460',
+          transition: 'width 0.4s ease, background 0.3s',
+        }} />
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '14px 16px 120px', display: 'flex', flexDirection: 'column', gap: 10 }}>

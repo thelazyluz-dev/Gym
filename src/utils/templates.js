@@ -10,9 +10,9 @@ export const POPULAR_IDS = new Set([
 ])
 
 export const GOALS = [
-  { id: 'cut',      label: 'חיטוב',  sub: '4×12–15', color: '#60e8a0', textColor: '#000' },
-  { id: 'bulk',     label: 'מסה',    sub: '5×8–10',  color: '#e86060', textColor: '#fff' },
-  { id: 'strength', label: 'כוח',    sub: '5×3–5',   color: '#e8c460', textColor: '#000' },
+  { id: 'cut',      label: 'חיטוב',  sub: '4×12–15', desc: 'שריפת שומן',   color: '#5ee8a0', textColor: '#002b1a' },
+  { id: 'bulk',     label: 'מסה',    sub: '5×8–10',  desc: 'בניית שריר',   color: '#e86060', textColor: '#fff' },
+  { id: 'strength', label: 'כוח',    sub: '5×3–5',   desc: 'עצימות גבוהה', color: '#e8c460', textColor: '#1a1000' },
 ]
 
 const GOAL_PARAMS = {
