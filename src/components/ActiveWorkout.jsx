@@ -139,131 +139,143 @@ function ExerciseCard({ ex, done, weight, prevWeight, pr, onToggle, onUpdateWeig
   const borderColor = done
     ? 'rgba(74,222,128,0.18)'
     : isNewPR
-      ? 'rgba(232,196,96,0.4)'
+      ? 'rgba(232,196,96,0.45)'
       : '#181818'
-
-  const cardBg = done
-    ? 'rgba(74,222,128,0.03)'
-    : isNewPR
-      ? 'rgba(232,196,96,0.04)'
-      : '#111'
 
   return (
     <div style={{
       borderRadius: 20, border: `1px solid ${borderColor}`,
-      background: cardBg, overflow: 'hidden',
-      boxShadow: done
-        ? '0 4px 24px rgba(74,222,128,0.06)'
-        : isNewPR
-          ? '0 4px 24px rgba(232,196,96,0.08)'
-          : '0 2px 12px rgba(0,0,0,0.2)',
+      background: done ? 'rgba(74,222,128,0.03)' : '#111',
+      overflow: 'hidden',
+      boxShadow: done ? '0 4px 24px rgba(74,222,128,0.06)' : isNewPR ? '0 4px 24px rgba(232,196,96,0.1)' : 'none',
       transition: 'all 0.35s ease',
+      display: 'flex', alignItems: 'stretch',
     }}>
-      {/* Main content row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 14 }}>
-        {/* Image */}
+
+      {/* Left: image + info */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 0 14px 14px', flex: 1, minWidth: 0 }}>
         <div style={{
-          width: 58, height: 58, borderRadius: 14, overflow: 'hidden',
+          width: 52, height: 52, borderRadius: 13, overflow: 'hidden',
           flexShrink: 0, background: '#1a1a1a',
-          opacity: done ? 0.18 : 1, transition: 'opacity 0.35s',
+          opacity: done ? 0.15 : 1, transition: 'opacity 0.35s',
         }}>
           <img src={IMG + ex.image} alt={ex.name} loading="lazy"
             style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
 
-        {/* Name + sets */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{
-            color: done ? '#282828' : '#f0f0f0',
-            fontSize: 15, fontWeight: 700, marginBottom: 7,
+            color: done ? '#2a2a2a' : '#f0f0f0',
+            fontSize: 14, fontWeight: 700, marginBottom: 6,
             textDecoration: done ? 'line-through' : 'none',
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             transition: 'color 0.3s',
           }}>
             {ex.name}
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
             <div style={{ display: 'flex', gap: 3 }}>
               {Array.from({ length: Math.min(setsCount, 8) }).map((_, i) => (
                 <div key={i} style={{
-                  width: 7, height: 7, borderRadius: 2,
+                  width: 6, height: 6, borderRadius: 2,
                   background: done ? '#1e1e1e' : '#e8c460',
                   transition: 'background 0.3s',
                 }} />
               ))}
             </div>
             {ex.reps && (
-              <span style={{ color: done ? '#252525' : '#555', fontSize: 12, transition: 'color 0.3s' }}>
+              <span style={{ color: done ? '#222' : '#555', fontSize: 11, transition: 'color 0.3s' }}>
                 × {ex.reps}
               </span>
             )}
+            {isNewPR && !done && (
+              <span style={{ color: '#c9a020', fontSize: 11, fontWeight: 700 }}>🏆 שיא!</span>
+            )}
           </div>
         </div>
+      </div>
 
-        {/* Toggle */}
+      {/* Divider */}
+      <div style={{ width: 1, background: '#161616', flexShrink: 0, margin: '10px 0' }} />
+
+      {/* Right: weight block */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '10px 12px', gap: 4, flexShrink: 0 }}>
+        {editing ? (
+          <input
+            type="number" inputMode="decimal" autoFocus
+            value={tempW}
+            onChange={e => setTempW(e.target.value)}
+            onBlur={commit}
+            onKeyDown={e => e.key === 'Enter' && commit()}
+            placeholder="0"
+            style={{
+              width: 72, background: '#161616', border: '1px solid #e8c460',
+              color: '#fff', borderRadius: 10, padding: '8px 6px',
+              fontSize: 20, textAlign: 'center', outline: 'none', fontWeight: 800,
+            }}
+          />
+        ) : (
+          <button
+            onClick={() => { if (!done) { setTempW(weight || ''); setEditing(true) } }}
+            style={{
+              background: done
+                ? 'transparent'
+                : weight
+                  ? 'rgba(232,196,96,0.1)'
+                  : 'rgba(232,196,96,0.06)',
+              border: done
+                ? 'none'
+                : weight
+                  ? '1px solid rgba(232,196,96,0.35)'
+                  : '1px dashed rgba(232,196,96,0.25)',
+              borderRadius: 12, padding: '8px 10px',
+              cursor: done ? 'default' : 'pointer',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1,
+              minWidth: 68, transition: 'all 0.2s',
+            }}
+          >
+            {weight ? (
+              <>
+                <span style={{ color: done ? '#2a2a2a' : '#e8c460', fontSize: 22, fontWeight: 900, lineHeight: 1, transition: 'color 0.3s' }}>
+                  {weight}
+                </span>
+                <span style={{ color: done ? '#222' : '#555', fontSize: 10 }}>ק"ג</span>
+              </>
+            ) : (
+              <>
+                <span style={{ color: '#e8c460', fontSize: 20, lineHeight: 1, opacity: 0.5 }}>+</span>
+                <span style={{ color: '#555', fontSize: 10, fontWeight: 600 }}>משקל</span>
+              </>
+            )}
+          </button>
+        )}
+        {prevWeight && !done && !editing && (
+          <span style={{ color: '#2a2a2a', fontSize: 9, textAlign: 'center' }}>
+            קודם: {prevWeight}
+          </span>
+        )}
+      </div>
+
+      {/* Divider */}
+      <div style={{ width: 1, background: '#161616', flexShrink: 0, margin: '10px 0' }} />
+
+      {/* Toggle */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 14px' }}>
         <button onClick={() => onToggle(ex.id)} style={{
-          width: 46, height: 46, borderRadius: '50%', flexShrink: 0,
+          width: 42, height: 42, borderRadius: '50%', flexShrink: 0,
           border: done ? 'none' : '2px solid #1e1e1e',
           background: done ? '#4ade80' : 'transparent',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', transition: 'all 0.3s',
-          boxShadow: done ? '0 0 22px rgba(74,222,128,0.45)' : 'none',
+          boxShadow: done ? '0 0 20px rgba(74,222,128,0.5)' : 'none',
         }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
             <path d="M20 6L9 17l-5-5"
-              stroke={done ? '#000' : '#252525'}
+              stroke={done ? '#000' : '#1e1e1e'}
               strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
       </div>
-
-      {/* Weight row — only shown when not done */}
-      {!done && (
-        <div style={{
-          borderTop: '1px solid #161616', padding: '10px 14px',
-          display: 'flex', alignItems: 'center', gap: 10,
-        }}>
-          <div style={{ flex: 1 }}>
-            {isNewPR
-              ? <span style={{ color: '#c9a020', fontSize: 13, fontWeight: 700 }}>🏆 שיא אישי חדש!</span>
-              : prevWeight
-                ? <span style={{ color: '#333', fontSize: 12 }}>
-                    קודם: <span style={{ color: '#484848', fontWeight: 600 }}>{prevWeight} ק"ג</span>
-                  </span>
-                : <span style={{ color: '#252525', fontSize: 12 }}>עדכן משקל</span>
-            }
-          </div>
-
-          {editing ? (
-            <input
-              type="number" inputMode="decimal" autoFocus
-              value={tempW}
-              onChange={e => setTempW(e.target.value)}
-              onBlur={commit}
-              onKeyDown={e => e.key === 'Enter' && commit()}
-              placeholder="0"
-              style={{
-                width: 88, background: '#161616', border: '1px solid #e8c460',
-                color: '#fff', borderRadius: 10, padding: '9px 10px',
-                fontSize: 17, textAlign: 'center', outline: 'none', fontWeight: 700,
-              }}
-            />
-          ) : (
-            <button onClick={() => { setTempW(weight || ''); setEditing(true) }} style={{
-              background: weight ? 'rgba(232,196,96,0.1)' : '#161616',
-              border: `1px solid ${weight ? 'rgba(232,196,96,0.35)' : '#222'}`,
-              color: weight ? '#e8c460' : '#404040',
-              borderRadius: 10, padding: '9px 18px', fontSize: 15,
-              fontWeight: weight ? 800 : 500, cursor: 'pointer',
-              minWidth: 88, textAlign: 'center',
-              boxShadow: weight ? '0 0 12px rgba(232,196,96,0.1)' : 'none',
-              transition: 'all 0.2s',
-            }}>
-              {weight ? `${weight} ק"ג` : '+ משקל'}
-            </button>
-          )}
-        </div>
-      )}
     </div>
   )
 }
