@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { translateName } from '../utils/translations'
 
 function calcStreak(history) {
   if (!history.length) return 0
@@ -27,7 +28,7 @@ export default function History({ history }) {
         if (ex.weight && ex.done !== false) {
           const w = parseFloat(ex.weight)
           if (!isNaN(w) && (!map[ex.id] || w > map[ex.id].weight)) {
-            map[ex.id] = { name: ex.name, weight: w, date: session.date }
+            map[ex.id] = { id: ex.id, name: ex.name, weight: w, date: session.date }
           }
         }
       })
@@ -80,7 +81,7 @@ export default function History({ history }) {
                 {i < 3 && <span style={S.prMedal}>{['🥇','🥈','🥉'][i]}</span>}
                 <span style={{ ...S.prWeight, color: i === 0 ? '#f0c020' : i === 1 ? '#ccc' : '#e8c460' }}>{pr.weight}</span>
                 <span style={S.prUnit}>ק"ג</span>
-                <span style={S.prName}>{pr.name}</span>
+                <span style={S.prName}>{translateName(pr.id, pr.name)}</span>
               </div>
             ))}
           </div>
@@ -127,7 +128,7 @@ function SessionCard({ session }) {
         {session.exercises?.map((ex, i) => (
           <div key={i} style={{ ...S.exRow, opacity: ex.done === false ? 0.28 : 1 }}>
             <span style={{ ...S.exName, textDecoration: ex.done === false ? 'line-through' : 'none' }}>
-              {ex.name}
+              {translateName(ex.id, ex.name)}
             </span>
             <div style={S.exMeta}>
               <span style={S.exSets}>{ex.sets}×</span>

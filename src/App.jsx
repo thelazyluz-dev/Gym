@@ -24,7 +24,9 @@ const Header = () => (
 )
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('plan')
+  // Returning users land on the workout tab — that's the daily use case.
+  // New users see onboarding anyway, which sets the tab on completion.
+  const [activeTab, setActiveTab] = useState('workout')
   const [plan, setPlan]         = useLocalStorage('gym_plan', null)
   const [history, setHistory]   = useLocalStorage('gym_history', [])
   const [weights, setWeights]   = useLocalStorage('gym_weights', {})

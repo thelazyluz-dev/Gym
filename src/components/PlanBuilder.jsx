@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { SPLIT_CONFIGS } from '../utils/splits'
 import ExerciseLibrary from './ExerciseLibrary'
 import { getTemplate, GOALS } from '../utils/templates'
+import { translateName, translateCategory, exCount } from '../utils/translations'
 const IMG = 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/'
 const SPLIT_KEYS = Object.keys(SPLIT_CONFIGS)
 const SPLIT_DESCS = {
@@ -124,11 +125,11 @@ export default function PlanBuilder({ plan, setPlan, onReset }) {
 
       {/* Days */}
       <div style={S.days}>
-        {plan.days.map(day => {
+        {plan.days.map((day, di) => {
           const open = expanded === day.id
           const isCustom = plan.splitType === 'CUSTOM'
           return (
-            <div key={day.id} style={S.dayCard}>
+            <div key={day.id} style={{ ...S.dayCard, animation: 'cardIn 0.35s ease both', animationDelay: `${di * 60}ms` }}>
               {/* header */}
               <div style={S.dayHead} onClick={() => setExpanded(open ? null : day.id)}>
                 <div style={S.dayBadge}><span style={S.dayLetter}>{day.id}</span></div>
@@ -142,7 +143,7 @@ export default function PlanBuilder({ plan, setPlan, onReset }) {
                   ) : (
                     <span style={S.dayLabelTxt}>{day.label}</span>
                   )}
-                  <span style={S.dayCount}>{day.exercises.length} תרגילים</span>
+                  <span style={S.dayCount}>{exCount(day.exercises.length)}</span>
                 </div>
                 <div style={S.dayActions} onClick={e => e.stopPropagation()}>
                   {isCustom && <>
@@ -181,10 +182,10 @@ export default function PlanBuilder({ plan, setPlan, onReset }) {
                       <div key={ex._pid} style={S.exRow}>
                         <img src={IMG + ex.image} alt={ex.name} style={S.exThumb} loading="lazy" />
                         <div style={S.exInfo}>
-                          <span style={S.exName}>{ex.name}</span>
+                          <span style={S.exName}>{translateName(ex.id, ex.name)}</span>
                           <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
                             {ex.reps && <span style={S.exReps}>{ex.reps} חזרות</span>}
-                            {ex.category && <span style={S.exCat}>{ex.category}</span>}
+                            {ex.category && <span style={S.exCat}>{translateCategory(ex.category)}</span>}
                           </div>
                         </div>
                         <div style={S.stepper} onClick={e => e.stopPropagation()}>
@@ -272,7 +273,7 @@ const S = {
   exInfo: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 },
   exName: { color: '#ddd', fontSize: 13, marginBottom: 3 },
   exReps: { color: '#444', fontSize: 11 },
-  exCat: { color: '#2a2a2a', fontSize: 10, background: '#1a1a1a', borderRadius: 5, padding: '1px 6px' },
+  exCat: { color: '#5a5a5a', fontSize: 10, background: '#1a1a1a', borderRadius: 5, padding: '1px 6px' },
   stepper: { display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 },
   stepBtn: { width: 28, height: 28, borderRadius: 7, background: '#1a1a1a', border: '1px solid #2a2a2a', color: '#e8c460', fontSize: 16, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 },
   stepCenter: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, minWidth: 30 },

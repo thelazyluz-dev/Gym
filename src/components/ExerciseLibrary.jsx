@@ -1,6 +1,6 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from 'react'
 import exercises from '../data/exercises.json'
-import { translateCategory, translateEquipment } from '../utils/translations'
+import { translateCategory, translateEquipment, translateName } from '../utils/translations'
 import { POPULAR_IDS } from '../utils/templates'
 
 const IMG = 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/'
@@ -42,7 +42,7 @@ function VirtualList({ items, onSelect }) {
             <img src={IMG + ex.image} alt={ex.name} loading="lazy"
               style={{ width: 56, height: 56, borderRadius: 10, objectFit: 'cover', flexShrink: 0, background: '#1a1a1a' }} />
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ color: '#f0f0f0', fontSize: 14, fontWeight: 600, marginBottom: 5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ex.name}</p>
+              <p style={{ color: '#f0f0f0', fontSize: 14, fontWeight: 600, marginBottom: 5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{translateName(ex.id, ex.name)}</p>
               <div style={{ display: 'flex', gap: 6 }}>
                 <span style={{ background: '#1e1e1e', color: '#888', fontSize: 11, padding: '2px 8px', borderRadius: 6 }}>{translateCategory(ex.category)}</span>
                 <span style={{ background: '#1e1e1e', color: '#888', fontSize: 11, padding: '2px 8px', borderRadius: 6 }}>{translateEquipment(ex.equipment)}</span>
@@ -66,7 +66,7 @@ function Detail({ ex, onAdd, onBack }) {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '18px 16px 14px', borderBottom: '1px solid #1a1a1a', flexShrink: 0 }}>
         <button onClick={onBack} style={{ background: 'none', border: 'none', color: '#e8c460', fontSize: 15, cursor: 'pointer', padding: 0 }}>חזרה</button>
-        <p style={{ color: '#fff', fontSize: 16, fontWeight: 700, flex: 1, margin: 0 }}>{ex.name}</p>
+        <p style={{ color: '#fff', fontSize: 16, fontWeight: 700, flex: 1, margin: 0 }}>{translateName(ex.id, ex.name)}</p>
       </div>
       <div style={{ flex: 1, overflowY: 'auto', padding: 16 }}>
         <div style={{ width: '100%', aspectRatio: '1', background: '#111', borderRadius: 16, overflow: 'hidden', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -127,7 +127,10 @@ export default function ExerciseLibrary({ onSelect, onClose }) {
       if (cat === '__popular__' && !POPULAR_IDS.has(ex.id)) return false
       if (cat && cat !== '__popular__' && ex.category !== cat) return false
       if (eq  && ex.equipment !== eq)  return false
-      if (q && !ex.name.toLowerCase().includes(q) && !(ex.muscle_group || '').toLowerCase().includes(q)) return false
+      if (q
+        && !ex.name.toLowerCase().includes(q)
+        && !(ex.muscle_group || '').toLowerCase().includes(q)
+        && !translateName(ex.id, '').includes(search.trim())) return false
       return true
     })
   }, [search, cat, eq])
